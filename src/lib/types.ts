@@ -83,8 +83,9 @@ export type PreflightCheck = {
   reference?: string;
 };
 
-export type FindingKind = "fod" | "light-out" | "pavement" | "fence" | "wildlife";
+export type FindingKind = "fod" | "light-out" | "pavement" | "fence" | "wildlife" | "obstruction";
 export type Severity = "low" | "medium" | "high";
+export type DetectionSource = "vision" | "simulated";
 
 export type Finding = {
   id: string;
@@ -95,6 +96,18 @@ export type Finding = {
   position: LatLng;
   /** Distance along the mission path where the detection occurs, m. */
   atM: number;
+  /** "vision" = Gemini vision over real orthoimagery; "simulated" = seeded stand-in. */
+  source?: DetectionSource;
+};
+
+/** Georeferenced orthoimagery strip analyzed during a mission. */
+export type ImageryOverlay = {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+  /** Esri export URL returning the exact image that was analyzed. */
+  url: string;
 };
 
 export type MissionStatus = "planned" | "in-progress" | "completed" | "aborted";
@@ -109,6 +122,7 @@ export type Mission = {
   preflight: PreflightCheck[];
   sorties: number;
   findings: Finding[];
+  imagery?: ImageryOverlay[];
   completedAt?: string;
   report?: string;
   reportSource?: "gemini" | "template";

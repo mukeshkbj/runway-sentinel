@@ -79,6 +79,7 @@ export function simulateFindings(plan: MissionPlan, seed: string): Finding[] {
       confidence: Math.round((0.72 + rnd() * 0.26) * 100) / 100,
       position: pointAlong(plan.path, atM).point,
       atM,
+      source: "simulated" as const,
     };
   }).sort((a, b) => a.atM - b.atM);
 }

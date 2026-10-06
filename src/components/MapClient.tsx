@@ -2,10 +2,10 @@
 
 import L from "leaflet";
 import { useEffect, useRef } from "react";
-import { CircleMarker, MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, Tooltip } from "react-leaflet";
+import { CircleMarker, ImageOverlay, MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, Tooltip } from "react-leaflet";
 import { KBOS, runwayPolygon, RUNWAYS } from "@/lib/airfield";
 import type { LatLng } from "@/lib/geo";
-import type { Finding, MissionPlan } from "@/lib/types";
+import type { Finding, ImageryOverlay, MissionPlan } from "@/lib/types";
 
 const SATELLITE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
@@ -24,12 +24,14 @@ export function AirfieldMap({
   traveled,
   findings = [],
   launchOnly = false,
+  overlays = [],
 }: {
   plan?: MissionPlan | null;
   droneAt?: LatLng | null;
   traveled?: LatLng[];
   findings?: Finding[];
   launchOnly?: boolean;
+  overlays?: ImageryOverlay[];
 }) {
   return (
     <MapContainer
@@ -44,6 +46,17 @@ export function AirfieldMap({
         maxZoom={19}
       />
       <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png" attribution="" />
+      {overlays.map((o) => (
+        <ImageOverlay
+          key={o.url}
+          url={o.url}
+          bounds={[
+            [o.south, o.west],
+            [o.north, o.east],
+          ]}
+          opacity={0.75}
+        />
+      ))}
       {RUNWAYS.map((r) => (
         <Polygon key={r.id} positions={runwayPolygon(r)} pathOptions={{ color: "#64748b", weight: 1, fillOpacity: 0.08 }} />
       ))}

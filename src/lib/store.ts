@@ -77,14 +77,14 @@ export const actions = {
         : state.fleet;
     set({ ...state, missions, fleet: releaseDrone });
   },
-  completeMission(id: string, findings: Finding[]) {
+  completeMission(id: string, findings: Finding[], imagery?: Mission["imagery"]) {
     const mission = state.missions.find((m) => m.id === id);
     if (!mission) return;
     const hours = (mission.plan.estFlightMin * Math.max(1, mission.sorties)) / 60;
     set({
       ...state,
       missions: state.missions.map((m) =>
-        m.id === id ? { ...m, status: "completed", findings, completedAt: new Date().toISOString() } : m,
+        m.id === id ? { ...m, status: "completed", findings, imagery, completedAt: new Date().toISOString() } : m,
       ),
       fleet: state.fleet.map((d) =>
         d.id === mission.droneId

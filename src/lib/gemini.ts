@@ -24,9 +24,13 @@ export function outputText(res: InteractionResponse): string | null {
   return parts.length ? parts.join("\n") : null;
 }
 
+export type GeminiContent =
+  | { type: "text"; text: string }
+  | { type: "image"; mime_type: string; data: string };
+
 export async function askGemini(
-  input: string,
-  opts: { schema?: object; timeoutMs?: number } = {},
+  input: string | GeminiContent[],
+  opts: { schema?: object; timeoutMs?: number; model?: string } = {},
 ): Promise<{ text: string; model: string } | null> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
@@ -34,7 +38,7 @@ export async function askGemini(
     method: "POST",
     headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: MODEL,
+      model: opts.model ?? MODEL,
       input,
       ...(opts.schema ? { response_format: { type: "text", mime_type: "application/json", schema: opts.schema } } : {}),
     }),

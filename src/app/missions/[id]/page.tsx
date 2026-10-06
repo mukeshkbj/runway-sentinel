@@ -6,8 +6,10 @@ import { Map } from "@/components/Map";
 import { Badge, btnGhost, btnPrimary, DecisionBadge } from "@/components/ui";
 import { modelById } from "@/lib/fleet-seed";
 import { distanceM, pathLengthM, pointAlong } from "@/lib/geo";
+import { segmentCount } from "@/lib/detect";
 import { inspectWindow, simulateFindings } from "@/lib/simulation";
 import { actions, useMission, useOps } from "@/lib/store";
+import type { Finding, ImageryOverlay } from "@/lib/types";
 import { useWeather } from "@/lib/use-weather";
 
 const SIM_DURATION_MS = 24000;
@@ -20,12 +22,47 @@ export default function MissionPage() {
   const [progress, setProgress] = useState(0);
   const [running, setRunning] = useState(false);
   const [reportBusy, setReportBusy] = useState(false);
+  const [vision, setVision] = useState<{ findings: Finding[]; overlays: ImageryOverlay[]; pending: boolean }>({
+    findings: [],
+    overlays: [],
+    pending: false,
+  });
   const raf = useRef<number>(0);
+  const visionJob = useRef<Promise<{ findings: Finding[]; overlays: ImageryOverlay[] }> | null>(null);
 
-  const findings = useMemo(
+  async function runVision(m: NonNullable<typeof mission>): Promise<{ findings: Finding[]; overlays: ImageryOverlay[] }> {
+    if (m.plan.type !== "runway-fod" || !m.plan.targetId.startsWith("rwy-")) {
+      return { findings: [], overlays: [] };
+    }
+    const n = segmentCount(m.plan.targetId.replace(/^rwy-/, ""));
+    const results = await Promise.allSettled(
+      Array.from({ length: n }, (_, i) =>
+        fetch("/api/ai/detect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ targetId: m.plan.targetId, segmentIndex: i, path: m.plan.path, seed: m.id }),
+        }).then((r) => (r.ok ? r.json() : Promise.reject(r.status))),
+      ),
+    );
+    const out = { findings: [] as Finding[], overlays: [] as ImageryOverlay[] };
+    for (const r of results) {
+      if (r.status === "fulfilled") {
+        out.findings.push(...(r.value.findings ?? []));
+        if (r.value.overlay) out.overlays.push(r.value.overlay);
+      }
+    }
+    out.findings.sort((a, b) => a.atM - b.atM);
+    return out;
+  }
+
+  const simFindings = useMemo(
     () => (mission && mission.status !== "planned" ? simulateFindings(mission.plan, mission.id) : []),
     [mission],
   );
+  const findings = useMemo(() => {
+    if (mission?.status === "completed" || mission?.status === "aborted") return mission.findings;
+    return [...simFindings, ...vision.findings].sort((a, b) => a.atM - b.atM);
+  }, [mission, simFindings, vision.findings]);
 
   const plan = mission?.plan;
   const total = plan ? pathLengthM(plan.path) : 0;
@@ -44,7 +81,11 @@ export default function MissionPage() {
       if (p < 1) raf.current = requestAnimationFrame(tick);
       else {
         setRunning(false);
-        actions.completeMission(id, simulateFindings(mission.plan, mission.id));
+        const m = mission;
+        const done = (v: { findings: Finding[]; overlays: ImageryOverlay[] }) =>
+          actions.completeMission(id, [...simulateFindings(m.plan, m.id), ...v.findings].sort((a, b) => a.atM - b.atM), v.overlays);
+        if (visionJob.current) visionJob.current.then(done, () => done({ findings: [], overlays: [] }));
+        else done({ findings: [], overlays: [] });
       }
     };
     raf.current = requestAnimationFrame(tick);
@@ -54,6 +95,13 @@ export default function MissionPage() {
   if (!mission || !plan) return <p className="text-zinc-400">Mission not found.</p>;
 
   const start = () => {
+    if (!visionJob.current && mission.plan.type === "runway-fod") {
+      setVision({ findings: [], overlays: [], pending: true });
+      visionJob.current = runVision(mission).then((v) => {
+        setVision({ ...v, pending: false });
+        return v;
+      });
+    }
     if (mission.status !== "planned") {
       setRunning(true);
       return;
@@ -110,6 +158,7 @@ export default function MissionPage() {
               droneAt={mission.status === "in-progress" ? pos.point : null}
               traveled={mission.status === "in-progress" ? traveled : []}
               findings={revealed}
+              overlays={mission.imagery?.length ? mission.imagery : vision.overlays}
             />
           </div>
         </div>
@@ -194,8 +243,14 @@ export default function MissionPage() {
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
             Findings {revealed.length > 0 && <span className="text-zinc-500">({revealed.length})</span>}
           </h3>
+          {vision.pending && (
+            <p className="mb-2 text-xs text-sky-300">Vision analysis running on orthoimagery…</p>
+          )}
           {mission.status === "planned" && (
-            <p className="text-xs text-zinc-500">Findings appear here as the drone reaches them (simulated detections).</p>
+            <p className="text-xs text-zinc-500">
+              Findings appear as the drone reaches them. Seeded detections stand in for onboard capture; items tagged
+              &quot;vision&quot; are real Gemini-vision detections on current orthoimagery.
+            </p>
           )}
           <ul className="space-y-2">
             {revealed.map((f) => (
@@ -206,6 +261,11 @@ export default function MissionPage() {
                 </div>
                 <span className="font-mono text-[11px] text-zinc-500">
                   conf {f.confidence} · {f.position.lat.toFixed(5)}, {f.position.lng.toFixed(5)}
+                  {f.source === "vision" ? (
+                    <span className="ml-1 rounded bg-emerald-500/15 px-1 text-emerald-300">vision</span>
+                  ) : (
+                    <span className="ml-1 rounded bg-zinc-500/20 px-1 text-zinc-400">sim</span>
+                  )}
                 </span>
               </li>
             ))}
