@@ -1,0 +1,147 @@
+{
+  "canvas": {
+    "width": 1210,
+    "height": 1138,
+    "fps": 20,
+    "frames": 41
+  },
+  "signature": "runway-sentinel",
+  "title": {
+    "prefix": "The internals of",
+    "highlight": "Runway Sentinel",
+    "subtitle": "Drone inspection ops · Boston Logan (KBOS)"
+  },
+  "input_title": "Live Feeds In",
+  "inputs": [
+    {
+      "label": "METAR",
+      "icon": "cloud",
+      "color": "#7ee3d6"
+    },
+    {
+      "label": "Runways",
+      "icon": "globe",
+      "color": "#f4b64e"
+    },
+    {
+      "label": "Imagery",
+      "icon": "eye",
+      "color": "#ff7ab6"
+    },
+    {
+      "label": "Ops request",
+      "icon": "message",
+      "color": "#9d8cff"
+    }
+  ],
+  "core": {
+    "title": "Ops Pipeline",
+    "subtitle": "(request → go/no-go → sortie → findings)",
+    "cards": [
+      {
+        "title": "Plan",
+        "body": "path from runway\ngeometry + swath",
+        "icon": "plan",
+        "icon_style": "illustrated"
+      },
+      {
+        "title": "Assign",
+        "body": "fleet filter: wind,\nsensors, battery",
+        "icon": "check",
+        "icon_style": "illustrated"
+      },
+      {
+        "title": "Fly",
+        "body": "simulated sortie\nalong the legs",
+        "icon": "terminal",
+        "icon_style": "illustrated"
+      },
+      {
+        "title": "Detect",
+        "body": "Gemini vision on\northoimagery",
+        "icon": "eye",
+        "icon_style": "hero"
+      }
+    ]
+  },
+  "decision": {
+    "title": "GO / NO-GO?",
+    "body": "wind · vis · daylight\nauthorization"
+  },
+  "output": {
+    "label": "Work Orders",
+    "icon": "clipboard"
+  },
+  "loop_label": "Dispatch → resolve → fleet hours & cycles logged",
+  "retry_label": "NO-GO — weather or authorization blocks launch",
+  "left_panel": {
+    "title": "Real Data",
+    "badge": "no mocks",
+    "cards": [
+      {
+        "title": "KBOS METAR",
+        "body": "aviationweather.gov\nlive wind / vis",
+        "icon": "cloud"
+      },
+      {
+        "title": "Runway geom",
+        "body": "OurAirports coords\nwithin 2% of specs",
+        "icon": "globe"
+      },
+      {
+        "title": "Orthoimagery",
+        "body": "Esri World Imagery\n~0.3 m/px over BOS",
+        "icon": "eye"
+      }
+    ]
+  },
+  "center_panel": {
+    "title": "Part 107 Gate",
+    "subtitle": "(prototype decision support)",
+    "footer": "GO / CAUTION / NO-GO",
+    "cards": [
+      {
+        "title": "Weather",
+        "body": "wind + gusts vs\nairframe limits",
+        "icon": "cloud"
+      },
+      {
+        "title": "Daylight",
+        "body": "NOAA solar calc\nUSNO-verified",
+        "icon": "clock"
+      },
+      {
+        "title": "Airspace",
+        "body": "FAA auth + runway\nclosure confirmed",
+        "icon": "lock"
+      },
+      {
+        "title": "Airframe",
+        "body": "Remote ID, service\ninterval, reserve",
+        "icon": "shield"
+      }
+    ]
+  },
+  "right_panel": {
+    "title": "Gemini",
+    "incoming_label": "Query",
+    "return_label": "Structured JSON",
+    "cards": [
+      {
+        "title": "Intent parse",
+        "body": "plain English →\nmission config",
+        "icon": "brain"
+      },
+      {
+        "title": "Vision detect",
+        "body": "bbox schema →\ngeoreferenced fixes",
+        "icon": "eye"
+      },
+      {
+        "title": "After-action",
+        "body": "report + next\nactions",
+        "icon": "file"
+      }
+    ]
+  }
+}
