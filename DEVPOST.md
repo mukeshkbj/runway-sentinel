@@ -62,8 +62,10 @@ Gemini-written with a deterministic template fallback.
 
 **MVP** — full loop working: request → plan → preflight → simulate → findings → work orders.
 Real integrations: live METAR, real runway geometry, real compliance logic, real solar model, real
-LLM endpoints. Simulated: flight execution/detections (stand-in for onboard CV; labeled in-app) and
-the perimeter boundary (computed buffer — production would import surveyed AOA GIS).
+LLM endpoints, and real orthoimagery detection (Esri World Imagery ~0.3 m/px → Gemini vision bbox
+schema → lat/lng georeferenced findings, labeled "vision"). Simulated: flight execution and baseline
+detections (labeled "sim" — stand-in for onboard CV on live feeds) and the perimeter boundary
+(computed buffer — production would import surveyed AOA GIS).
 
 ## 7. Technology Used
 
@@ -79,7 +81,8 @@ Adjacent buyers: FAA-approved BVLOS waivers holders, military airfield managers,
 
 ## 10. Demo
 
-Working app: [your deployed URL or "runs locally — see README"]
+Working app: https://runway-sentinel.vercel.app
+Repo: https://github.com/mukeshkbj/runway-sentinel
 Video (3–5 min): [link]
 
 Demo path: dashboard (live METAR) → copilot "FOD sweep on 04R" → watch gusty weather ground the

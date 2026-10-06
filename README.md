@@ -27,9 +27,12 @@ Built for the **HTCJ × PROOF Aviation Futures Challenge**.
   genuinely ground the quads (watch RANGER-4 become the only legal airframe). A what-if panel
   simulates gusts/fog/night to exercise the checks on demand.
 - **Simulated execution** — the flight animates along the computed path; findings appear when the
-  aircraft reaches them. Detection output is a deterministic seeded stand-in for an onboard CV model
-  (clearly labeled in the UI) — the pipeline (detect → geolocate → work order → dispatch → resolve)
-  is real.
+  aircraft reaches them. Baseline findings are a deterministic seeded stand-in for an onboard CV
+  model (labeled "sim" in the UI).
+- **Vision detection on real imagery** — after launch, runway segments are fetched from Esri World
+  Imagery (~0.3 m/px over KBOS), analyzed by Gemini vision with a bounding-box schema, and
+  georeferenced to lat/lng. Vision findings appear on the map as labeled imagery strips alongside
+  the simulated ones — same geolocate → work order → dispatch → resolve pipeline.
 - **Gemini copilot** (optional, `GEMINI_API_KEY`) — plain-English mission requests are parsed into a
   structured plan via the Interactions API with a JSON schema; a keyword parser covers the same cases
   when no key is set. Completed missions get an LLM-written after-action report, or a template
@@ -80,12 +83,16 @@ return GO/NO-GO correctly, and solar times match USNO for KBOS within 3 minutes.
 - Weather: aviationweather.gov Data API (live METAR)
 - Sunrise/sunset: NOAA/SunCalc algorithm, verified against USNO for KBOS
 - Airframe specs: representative generic classes — swap real specs in `src/lib/fleet-seed.ts`
-- Simulated: detection findings, perimeter fence line (computed 150 m buffer — replace with surveyed
-  AOA boundary in production), what-if weather presets
+- Imagery: Esri World Imagery export API (Maxar/NAIP etc., 0.3 m/px class over BOS) — used for
+  Gemini vision segment analysis
+- Simulated: baseline detection findings ("sim" label), perimeter fence line (computed 150 m
+  buffer — replace with surveyed AOA boundary in production), what-if weather presets
 
 ## Honest limitations
 
-Simulated findings are placeholders for an onboard CV model, not detections from real imagery.
+Simulated findings are placeholders for an onboard CV model. Gemini vision analyzes real orthoimagery,
+but base-map imagery is historical, not live capture, and a general vision model is not a certified
+FOD classifier — real deployment needs an onboard camera feed + purpose-tuned model.
 Perimeter patrol follows a computed buffer, not the surveyed fence line. Compliance guidance is a
 planning aid — the remote PIC remains responsible for 14 CFR Part 107 adherence and any COA
 conditions.
