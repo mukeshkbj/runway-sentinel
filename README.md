@@ -6,6 +6,10 @@ through Part 107 preflight compliance to findings and maintenance work orders.
 
 Built for the **HTCJ × PROOF Aviation Futures Challenge**.
 
+**Live demo:** https://runway-sentinel.vercel.app
+
+![Mission flight in progress — findings reveal as the drone covers the runway](submission/demo-loop.gif)
+
 ## What it does
 
 - **Mission planner** — pick a mission type (FOD sweep, edge-light check, perimeter patrol), a target

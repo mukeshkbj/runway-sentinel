@@ -83,7 +83,7 @@ Adjacent buyers: FAA-approved BVLOS waivers holders, military airfield managers,
 
 Working app: https://runway-sentinel.vercel.app
 Repo: https://github.com/mukeshkbj/runway-sentinel
-Video (3–5 min): [link]
+Video (3–5 min): [upload submission/demo-draft.mp4 (3:07, recorded against the live deployment) and paste link]
 
 Demo path: dashboard (live METAR) → copilot "FOD sweep on 04R" → watch gusty weather ground the
 quads and the VTOL win assignment → preflight CAUTION → what-if "fog" forces NO-GO → create & launch
@@ -91,7 +91,7 @@ quads and the VTOL win assignment → preflight CAUTION → what-if "fog" forces
 
 ## 11. Team
 
-[Name(s) + role(s)]
+mukeshkbj — solo (design, implementation, testing) [edit: full name + role for the form]
 
 ## 12. What You Need Next
 
